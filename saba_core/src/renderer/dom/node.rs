@@ -1,10 +1,11 @@
+use crate::renderer::html::attribute::Attribute;
+use alloc::format;
 use alloc::rc::Rc;
 use alloc::rc::Weak;
-use core::cell::RefCell;
-use crate::renderer::html::attribute::Attribute;
+use alloc::string::String;
 use alloc::vec::Vec;
+use core::cell::RefCell;
 use core::str::FromStr;
-use alloc::format;
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -15,6 +16,12 @@ pub struct Node {
   last_child: Weak<RefCell<Node>>,
   previous_sibling: Weak<RefCell<Node>>,
   next_sibling: Option<Rc<RefCell<Node>>>,
+}
+
+impl PartialEq for Node {
+  fn eq(&self, other: &Self) -> bool {
+    self.kind == other.kind
+  }
 }
 
 impl Node {
@@ -30,7 +37,7 @@ impl Node {
     }
   }
 
-  pub fn window(&mut self, window: Weak<RefCell<window>>) {
+  pub fn set_window(&mut self, window: Weak<RefCell<Window>>) {
     self.window = window;
   }
 
@@ -89,7 +96,7 @@ impl Node {
   }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub enum NodeKind {
   /// https://dom.spec.whatwg.org/#interface-document
   Document,
@@ -99,7 +106,21 @@ pub enum NodeKind {
   Text(String),
 }
 
+impl PartialEq for NodeKind {
+  fn eq(&self, other: &Self) -> bool {
+    match &self {
+      NodeKind::Document => matches!(other, NodeKind::Document),
+      NodeKind::Element(e1) => match &other {
+        NodeKind::Element(e2) => e1.kind == e2.kind,
+        _=> false,
+      },
+      NodeKind::Text(_) => matches!(other, NodeKind::Text(_)),
+    }
+  }
+}
+
 ///https://html.spec.whatwg.org/multipage/nav-history-apis.html#window
+#[derive(Debug, Clone)]
 pub struct Window {
   document: Rc<RefCell<Node>>,
 }
@@ -157,6 +178,13 @@ pub enum ElementKind {
   Script,
   /// https://html.spec.whatwg.org/multipage/semantics.html#the-body-element
   Body,
+  /// https://html.spec.whatwg.org/multipage/grouping-content.html#the-p-element
+  P,
+  /// https://html.spec.whatwg.org/multipage/sections.html#the-h1,-h2,-h3,-h4,-h5,-and-h6-elements
+  H1,
+  H2,
+  /// https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-a-element
+  A,
 }
 
 impl FromStr for ElementKind {
@@ -169,7 +197,11 @@ impl FromStr for ElementKind {
       "style" => Ok(ElementKind::Style),
       "script" => Ok(ElementKind::Script),
       "body" => Ok(ElementKind::Body),
-      _=> Err(format!("unimplemented element name {:?}", s))
+      "p" => Ok(ElementKind::P),
+      "h1" => Ok(ElementKind::H1),
+      "h2" => Ok(ElementKind::H2),
+      "a" => Ok(ElementKind::A),
+      _=> Err(format!("unimplemented element name {:?}", s)),
     }
   }
 }

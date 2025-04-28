@@ -1,6 +1,6 @@
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::render::html::attribute::Attribute;
+use crate::renderer::html::attribute::Attribute;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HtmlToken {
