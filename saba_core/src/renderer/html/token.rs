@@ -363,25 +363,6 @@ impl Iterator for HtmlTokeneizer {
           self.state = State::AttributeValueUnquoted;
         }
 
-        State::BeforeAttributeName => {
-          if c == ' ' {
-            //空白文字は無視する
-            continue;
-          }
-
-          if c == '"' {
-            self.state = State::AttributeValueDoubleQuoted;
-            continue;
-          }
-
-          if c == '\'' {
-            self.state = State::AttributeValueSingleQuoted;
-          }
-
-          self.reconsume = true;
-          self.state = State::AttributeValueUnquoted;
-        }
-
         State::AttributeValueDoubleQuoted => { 
           if c == '"' {
             self.state = State::AfterAttributeValueQuoted;
